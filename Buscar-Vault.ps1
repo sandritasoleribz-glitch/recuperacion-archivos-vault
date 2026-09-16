@@ -7,17 +7,18 @@ $RutasBuscar = @(
     "$env:USERPROFILE\Downloads"
 )
 
-# Definimos las dos extensiones objetivo
-$Filtros = @("*.vault", "*.enc")
+# Nuevas extensiones objetivo (Copias de WhatsApp y Comprimidos)
+$Filtros = @("*.crypt14", "*.crypt15", "*.zip", "*.rar")
 
-$CarpetaResultados = Join-Path $PSScriptRoot "..\resultados"
+# Creamos la carpeta de resultados en la raíz del repositorio
+$CarpetaResultados = Join-Path (Get-Location) "resultados"
 if (-not (Test-Path $CarpetaResultados)) { New-Item -ItemType Directory -Path $CarpetaResultados | Out-Null }
 
 Clear-Host
 Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "         ESCANEO FILTRADO: .VAULT Y .ENC          " -ForegroundColor Cyan
+Write-Host "     ESCANEO: COPIAS WHATSAPP Y COMPRIMIDOS       " -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "[*] Buscando contenedores cifrados y vaults..." -ForegroundColor Yellow
+Write-Host "[*] Buscando archivos .crypt14, .crypt15, .zip y .rar..." -ForegroundColor Yellow
 
 $Resultados = @()
 $Contador = 0
@@ -25,7 +26,6 @@ $Contador = 0
 foreach ($Ruta in $RutasBuscar) {
     if (Test-Path $Ruta) {
         foreach ($Filtro in $Filtros) {
-            # Búsqueda nativa ultra veloz por cada extensión
             $Archivos = Get-ChildItem -Path $Ruta -Filter $Filtro -Recurse -File -Force
             
             foreach ($Archivo in $Archivos) {
@@ -52,16 +52,16 @@ foreach ($Ruta in $RutasBuscar) {
 
 if ($Resultados.Count -eq 0) {
     Write-Host "
-[-] No se encontró ningún archivo .vault ni .enc en las rutas especificadas." -ForegroundColor Red
+[-] No se encontró ningún archivo con estas extensiones." -ForegroundColor Red
     exit
 }
 
-# Guardar los nuevos informes unificados
-$Resultados | Export-Csv -Path (Join-Path $CarpetaResultados "auditoria_vault_enc_$FechaActual.csv") -NoTypeInformation -Encoding UTF8
-$Resultados | ConvertTo-Json -Depth 4 | Out-File -FilePath (Join-Path $CarpetaResultados "auditoria_vault_enc_$FechaActual.json") -Encoding UTF8
+# Guardar informes localmente
+$Resultados | Export-Csv -Path (Join-Path $CarpetaResultados "auditoria_backups_$FechaActual.csv") -NoTypeInformation -Encoding UTF8
+$Resultados | ConvertTo-Json -Depth 4 | Out-File -FilePath (Join-Path $CarpetaResultados "auditoria_backups_$FechaActual.json") -Encoding UTF8
 
 Write-Host "
 ==================================================" -ForegroundColor Cyan
-Write-Host " [✓] Escaneo unificado completado con éxito." -ForegroundColor Green
-Write-Host " Informes generados en 'resultados/'" -ForegroundColor Gray
+Write-Host " [✓] Escaneo de backups completado con éxito." -ForegroundColor Green
+Write-Host " Informes generados en la carpeta 'resultados/'" -ForegroundColor Gray
 Write-Host "==================================================" -ForegroundColor Cyan
